@@ -16,11 +16,11 @@ def inspect(bag: str) -> set:
             return {tuple(line.strip().split(maxsplit=1)) for line in bag_manifest}
 
     elif tarfile.is_tarfile(bag):
-        directory_name = bag.split('/')[-1].split('.')[0]
-        tar = tarfile.open(bag, mode='r:*')
+        with tarfile.open(bag, mode='r:*') as tar:
+            top_directory = [directory for directory in tar.getnames() if '/' not in directory][0]
 
-        with tar.extractfile(f'{directory_name}/manifest-md5.txt') as bag_manifest:
-            return {tuple(line.strip().split(maxsplit=1)) for line in bag_manifest}
+            with tar.extractfile(f'{top_directory}/manifest-md5.txt') as bag_manifest:
+                return {tuple(line.decode().strip().split(maxsplit=1)) for line in bag_manifest}
 
     else:
         raise RuntimeError(f'{bag} is neither a directory or a tar file')
